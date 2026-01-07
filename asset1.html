@@ -11,7 +11,11 @@
     <h1>Asset 1</h1>
     
     <p>Asset data:</p>
-    <pre id="asset-data" data-asset-id="asset-1">Asset1::H4sIAKg4XmkC/+1ZXW/</pre>
+    <div class="asset-data-container">
+        <pre id="asset-data" data-asset-id="asset-1">Asset1::H4sIAKg4XmkC/+1ZXW/</pre>
+        <button id="copy-button" class="copy-button" onclick="copyAssetData()">Copy</button>
+    </div>
+    <script src="copy-asset.js"></script>
 </body>
 </html>
 

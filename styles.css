@@ -55,3 +55,37 @@ a {
 a:hover {
     text-decoration: underline;
 }
+
+.copy-button {
+    padding: 0.4em 0.8em;
+    background: #2072cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+    margin-bottom: 0.5em;
+}
+
+.copy-button:hover {
+    background: #185ba0;
+    transform: translateY(-1px);
+}
+
+.copy-button:active {
+    transform: translateY(0);
+}
+
+.copy-button.copied {
+    background: #28a745;
+}
+
+pre {
+    background: #f5f5f5;
+    padding: 1em;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0;
+}
