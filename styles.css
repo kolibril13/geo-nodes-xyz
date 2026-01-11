@@ -38,7 +38,9 @@ body {
 h1 {
     font-size: 1.7em;
     font-weight: 600;
+    margin-top: 0;
     margin-bottom: 0.7em;
+    padding-top: 1.2em;
     letter-spacing: -1px;
 }
 ul {
