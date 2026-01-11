@@ -2,7 +2,7 @@ body {
     font-family: system-ui, sans-serif;
     background: #fafbfc;
     color: #222;
-    max-width: 800px;
+    max-width: 480px;
     margin: 40px auto;
     padding: 2em;
     border-radius: 8px;
@@ -56,8 +56,44 @@ a:hover {
     text-decoration: underline;
 }
 
+.asset-data-container {
+    margin-top: 0.5em;
+}
+
+.asset-layout {
+    display: flex;
+    gap: 2em;
+    align-items: flex-start;
+    margin-bottom: 1em;
+}
+
+.asset-img {
+    max-width: 300px;
+    max-height: 250px;
+    display: block;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
 .copy-asset {
-    margin-top: 0;
+    flex: 1;
+    min-width: 0;
+    overflow: auto;
+}
+
+.copy-asset p {
+    margin: 0 0 0.5em 0;
+}
+
+@media (max-width: 700px) {
+    .asset-layout {
+        flex-direction: column;
+    }
+    .asset-img {
+        max-width: 100%;
+        margin: 0 auto;
+    }
 }
 
 pre {
