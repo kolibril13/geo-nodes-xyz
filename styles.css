@@ -1,7 +1,7 @@
 body {
     font-family: system-ui, sans-serif;
     background: #fafbfc;
-    color: #222;
+    color: hwb(0 13% 87%);
     max-width: 480px;
     margin: 40px auto;
     padding: 2em;
@@ -86,7 +86,7 @@ a:hover {
     margin: 0 0 0.5em 0;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 480px) {
     .asset-layout {
         flex-direction: column;
     }
