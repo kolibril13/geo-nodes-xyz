@@ -72,12 +72,10 @@ async function showDecodedAsset(assetDataEl, statsEl, decodedEl) {
         if (statsEl) {
             if (nodeNames.length === 0) {
                 statsEl.innerHTML = `
-                    <p><strong>Node Statistics:</strong></p>
                     <p>No nodes found in the asset data.</p>
                 `;
             } else {
                 statsEl.innerHTML = `
-                    <p><strong>Node Statistics:</strong></p>
                     <p>Total unique nodes: <strong>${nodeNames.length}</strong></p>
                     <p>Nodes used:</p>
                     <ul style="margin-top: 0.5em; padding-left: 1.5em;">
