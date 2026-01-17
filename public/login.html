@@ -1,43 +1,61 @@
-<button id="login">Login with Discord</button>
-<div id="status"></div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Login</title>
+  </head>
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js";
+  <body>
+    <button id="login">Login with Discord</button>
+    <div id="status"></div>
 
-  const supabase = createClient(
-    "https://msgozdhtfawuadxerkxq.supabase.co",
-    "sb_publishable_wnNxDxsZA_SazdahnpMiIg__zR2QQvv",
-    {
-      auth: {
-        flowType: "pkce",
-        detectSessionInUrl: true,
-      },
-    }
-  );
+    <script type="module">
+      import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-  async function checkAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
+      const supabase = createClient(
+        "https://msgozdhtfawuadxerkxq.supabase.co",
+        "sb_publishable_wnNxDxsZA_SazdahnpMiIg__zR2QQvv",
+        {
+          auth: {
+            flowType: "pkce",
+            detectSessionInUrl: true,
+          },
+        }
+      );
 
-    if (user) {
-      document.getElementById("status").textContent =
-        `Logged in as ${user.email ?? user.user_metadata?.full_name ?? "Discord user"}`;
-      document.getElementById("login").style.display = "none";
-    } else {
-      document.getElementById("status").textContent = "Not logged in.";
-      document.getElementById("login").style.display = "";
-    }
-  }
+      async function checkAuth() {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-  document.getElementById("login").onclick = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "discord",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-  };
+        const statusEl = document.getElementById("status");
+        const loginBtn = document.getElementById("login");
 
-  window.addEventListener("DOMContentLoaded", async () => {
-    await checkAuth();
-  });
-</script>
+        if (user) {
+          statusEl.textContent = `Logged in as ${
+            user.email ??
+            user.user_metadata?.full_name ??
+            "Discord user"
+          }`;
+          loginBtn.style.display = "none";
+        } else {
+          statusEl.textContent = "Not logged in.";
+          loginBtn.style.display = "";
+        }
+      }
+
+      document.getElementById("login").addEventListener("click", async () => {
+        await supabase.auth.signInWithOAuth({
+          provider: "discord",
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+      });
+
+      window.addEventListener("DOMContentLoaded", () => {
+        checkAuth();
+      });
+    </script>
+  </body>
+</html>

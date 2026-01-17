@@ -1,11 +1,25 @@
 <!doctype html>
+<meta charset="utf-8">
 <p>Logging you in…</p>
+
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-  createClient(
+  const supabase = createClient(
     "https://msgozdhtfawuadxerkxq.supabase.co",
     "sb_publishable_wnNxDxsZA_SazdahnpMiIg__zR2QQvv",
-    { auth: { flowType: "pkce", detectSessionInUrl: true } }
+    {
+      auth: {
+        flowType: "pkce",
+        detectSessionInUrl: true,
+      },
+    }
   );
+
+  // Finish OAuth and immediately leave this page
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) {
+      window.location.replace("/");
+    }
+  });
 </script>
