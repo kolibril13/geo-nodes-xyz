@@ -2,36 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>API Fetch Debug</title>
+  <title>Hello API</title>
   <style>
-    body { font-family: system-ui, sans-serif; padding: 2rem; }
-    pre { background: #f5f5f5; padding: 1rem; white-space: pre-wrap; }
-    .ok { color: green; }
-    .err { color: darkred; }
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 2rem;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 1rem;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
-  <h1>Fetch path test</h1>
-  <div id="results"></div>
+  <h1>Hello world</h1>
+  <pre id="output">Loading…</pre>
 
   <script>
-    const paths = ["/api/countries", "api/countries", "./api/countries", "../api/countries"];
-
-    async function test(path) {
-      const out = document.createElement("div");
-      out.innerHTML = `<strong>${path}</strong>`;
-      document.getElementById("results").appendChild(out);
-
-      try {
-        const res = await fetch(path);
-        const text = await res.text();
-        out.innerHTML += `<pre class="ok">STATUS: ${res.status}\n${text}</pre>`;
-      } catch (e) {
-        out.innerHTML += `<pre class="err">ERROR: ${e}</pre>`;
-      }
-    }
-
-    paths.forEach(test);
+    fetch("/api/countries")
+      .then(res => res.text())
+      .then(text => {
+        document.getElementById("output").textContent = text;
+      })
+      .catch(err => {
+        document.getElementById("output").textContent = "Error: " + err;
+      });
   </script>
 </body>
 </html>
