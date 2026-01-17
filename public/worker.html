@@ -4,35 +4,18 @@
   <meta charset="UTF-8" />
   <title>API Fetch Debug</title>
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      padding: 2rem;
-    }
-    pre {
-      background: #f5f5f5;
-      padding: 1rem;
-      white-space: pre-wrap;
-    }
+    body { font-family: system-ui, sans-serif; padding: 2rem; }
+    pre { background: #f5f5f5; padding: 1rem; white-space: pre-wrap; }
     .ok { color: green; }
     .err { color: darkred; }
   </style>
 </head>
 <body>
   <h1>Fetch path test</h1>
-  <p>Page URL: <code id="page-url"></code></p>
-
   <div id="results"></div>
 
   <script>
-    document.getElementById("page-url").textContent = location.href;
-
-    const paths = [
-      "/api/countries",
-      "api/countries",
-      "./api/countries",
-      "../api/countries",
-      location.origin + "/api/countries",
-    ];
+    const paths = ["/api/countries", "api/countries", "./api/countries", "../api/countries"];
 
     async function test(path) {
       const out = document.createElement("div");
@@ -42,30 +25,13 @@
       try {
         const res = await fetch(path);
         const text = await res.text();
-
-        out.innerHTML += `
-          <pre class="ok">
-STATUS: ${res.status}
-URL: ${res.url}
-BODY:
-${text}
-          </pre>
-        `;
+        out.innerHTML += `<pre class="ok">STATUS: ${res.status}\n${text}</pre>`;
       } catch (e) {
-        out.innerHTML += `
-          <pre class="err">
-ERROR:
-${e}
-          </pre>
-        `;
+        out.innerHTML += `<pre class="err">ERROR: ${e}</pre>`;
       }
     }
 
-    (async () => {
-      for (const p of paths) {
-        await test(p);
-      }
-    })();
+    paths.forEach(test);
   </script>
 </body>
 </html>
