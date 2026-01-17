@@ -1,0 +1,19 @@
+<button id="login">Login with Discord</button>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+  const supabase = createClient(
+    "https://msgozdhtfawuadxerkxq.supabase.co",
+    "sb_publishable_wnNxDxsZA_SazdahnpMiIg__zR2QQvv"
+  );
+
+  document.getElementById("login").onclick = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "discord",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
+</script>
