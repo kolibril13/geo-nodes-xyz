@@ -2,15 +2,27 @@ import { createClient } from "@supabase/supabase-js";
 
 export default {
   async fetch(request, env) {
+    // Forward auth header (if present)
+    const authHeader = request.headers.get("Authorization");
+
     const supabase = createClient(
       env.SUPABASE_URL,
-      env.SUPABASE_KEY
+      env.SUPABASE_KEY,
+      {
+        global: {
+          headers: authHeader
+            ? { Authorization: authHeader }
+            : {}
+        }
+      }
     );
 
+    // PUBLIC READ
     if (request.method === "GET") {
       const { data, error } = await supabase
-        .from("countries")
-        .select("*");
+        .from("entries")
+        .select("id, content, created_at, user_id")
+        .order("created_at", { ascending: false });
 
       if (error) {
         return new Response(error.message, { status: 500 });
@@ -21,12 +33,27 @@ export default {
       });
     }
 
+    // AUTHENTICATED WRITE
     if (request.method === "POST") {
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
+
+      if (userError || !userData?.user) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+
       const body = await request.json();
 
+      if (!body?.content) {
+        return new Response("Missing content", { status: 400 });
+      }
+
       const { error } = await supabase
-        .from("countries")
-        .insert({ name: body.name });
+        .from("entries")
+        .insert({
+          user_id: userData.user.id,
+          content: body.content
+        });
 
       if (error) {
         return new Response(error.message, { status: 500 });
