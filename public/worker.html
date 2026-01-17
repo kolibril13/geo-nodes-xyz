@@ -1,29 +1,71 @@
-<p id="status">Loading…</p>
-<ul id="countries"></ul>
-
-<script>
-async function loadCountries() {
-  try {
-    const res = await fetch("/api/countries");
-    if (!res.ok) throw new Error("API error");
-
-    const data = await res.json();
-
-    document.getElementById("status").textContent = "";
-
-    const ul = document.getElementById("countries");
-    ul.innerHTML = "";
-
-    for (const c of data) {
-      const li = document.createElement("li");
-      li.textContent = c.name;
-      ul.appendChild(li);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>API Fetch Debug</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 2rem;
     }
-  } catch (e) {
-    document.getElementById("status").textContent = "Failed to load data";
-    console.error(e);
-  }
-}
+    pre {
+      background: #f5f5f5;
+      padding: 1rem;
+      white-space: pre-wrap;
+    }
+    .ok { color: green; }
+    .err { color: darkred; }
+  </style>
+</head>
+<body>
+  <h1>Fetch path test</h1>
+  <p>Page URL: <code id="page-url"></code></p>
 
-loadCountries();
-</script>
+  <div id="results"></div>
+
+  <script>
+    document.getElementById("page-url").textContent = location.href;
+
+    const paths = [
+      "/api/countries",
+      "api/countries",
+      "./api/countries",
+      "../api/countries",
+      location.origin + "/api/countries",
+    ];
+
+    async function test(path) {
+      const out = document.createElement("div");
+      out.innerHTML = `<strong>${path}</strong>`;
+      document.getElementById("results").appendChild(out);
+
+      try {
+        const res = await fetch(path);
+        const text = await res.text();
+
+        out.innerHTML += `
+          <pre class="ok">
+STATUS: ${res.status}
+URL: ${res.url}
+BODY:
+${text}
+          </pre>
+        `;
+      } catch (e) {
+        out.innerHTML += `
+          <pre class="err">
+ERROR:
+${e}
+          </pre>
+        `;
+      }
+    }
+
+    (async () => {
+      for (const p of paths) {
+        await test(p);
+      }
+    })();
+  </script>
+</body>
+</html>
