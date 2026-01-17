@@ -15,7 +15,7 @@ body {
 .login-corner {
     position: absolute;
     top: 0.6em;
-    left: 1em;
+    right: 1em;
     display: flex;
     align-items: center;
     gap: 0.6em;
@@ -65,7 +65,7 @@ body {
 .back-button {
     position: absolute;
     top: 0.6em;
-    right: 1em;
+    left: 1em;
     font-size: 1.3em;
     color: #2072cc;
     text-decoration: none;
@@ -79,7 +79,7 @@ body {
 }
 @media (max-width: 530px) {
     .back-button {
-        right: 0.5em;
+        left: 0.5em;
         top: 0.6em;
     }
 }
