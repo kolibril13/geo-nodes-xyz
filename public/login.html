@@ -24,7 +24,8 @@
     await supabase.auth.signInWithOAuth({
       provider: "discord",
       options: {
-        redirectTo: window.location.origin + "/login.html",
+        // Use the correct callback URI as registered with Discord/Supabase
+        redirectTo: "https://geo-nodes.xyz/auth/callback",
       },
     });
   };
