@@ -22,11 +22,12 @@ export async function initLoginCorner() {
       user.email ??
       user.user_metadata?.full_name ??
       "Discord user";
-
-    corner.innerHTML = `
-      <span class="login-status">${displayName}</span>
-      <button class="logout-btn">Logout</button>
-    `;
+    corner.innerHTML = '';
+    corner.insertAdjacentHTML(
+      "afterbegin",
+      `<span class="login-status"></span><button class="logout-btn">Logout</button>`
+    );
+    corner.querySelector(".login-status").textContent = displayName;
 
     corner.querySelector(".logout-btn").addEventListener("click", async () => {
       await supabase.auth.signOut();

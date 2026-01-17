@@ -54,6 +54,13 @@ function getNodeNames(data) {
     return [...new Set(names)];
 }
 
+// Escape HTML entities to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Async show function due to ungzip
 async function showDecodedAsset() {
     const b64 = getTreeClipperData();
@@ -84,7 +91,7 @@ async function showDecodedAsset() {
                     <p>Total unique nodes: <strong>${nodeNames.length}</strong></p>
                     <p>Nodes used:</p>
                     <ul style="margin-top: 0.5em; padding-left: 1.5em;">
-                        ${nodeNames.map(name => `<li>${name}</li>`).join('')}
+                        ${nodeNames.map(name => `<li>${escapeHtml(name)}</li>`).join('')}
                     </ul>
                 `;
             }
