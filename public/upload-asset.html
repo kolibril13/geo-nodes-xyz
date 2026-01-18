@@ -12,7 +12,11 @@
 
   <h1>Upload Asset</h1>
 
-  <form id="asset-form" class="asset-form">
+  <div id="login-prompt" class="login-prompt">
+    <p>Please log in with Discord to upload assets.</p>
+  </div>
+
+  <form id="asset-form" class="asset-form" style="display: none;">
     <div class="form-group">
       <label for="asset-data">Asset Data *</label>
       <textarea
@@ -55,14 +59,39 @@
   </div>
 
   <script type="module">
-    import { supabase } from "./auth.js";
+    import { supabase, initLoginCorner } from "./auth.js";
+
+    // Init login corner
+    initLoginCorner();
 
     const form = document.getElementById("asset-form");
+    const loginPrompt = document.getElementById("login-prompt");
     const output = document.getElementById("output");
     const statusIcon = output.querySelector(".status-icon");
     const statusText = output.querySelector(".status-text");
 
     let statusTimeout;
+
+    // ---------------- AUTH STATE ----------------
+    function updateAuthUI(user) {
+      if (user) {
+        form.style.display = "";
+        loginPrompt.style.display = "none";
+      } else {
+        form.style.display = "none";
+        loginPrompt.style.display = "";
+      }
+    }
+
+    // Get initial state
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      updateAuthUI(user);
+    });
+
+    // Listen for changes
+    supabase.auth.onAuthStateChange((event, session) => {
+      updateAuthUI(session?.user ?? null);
+    });
 
     function showStatus(type, message) {
       clearTimeout(statusTimeout);
@@ -182,7 +211,5 @@
       }
     };
   </script>
-
-  <script type="module" src="auth.js"></script>
 </body>
 </html>

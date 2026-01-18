@@ -11,11 +11,9 @@ export const supabase = createClient(
   }
 );
 
-export async function initLoginCorner() {
+function renderLoginCorner(user) {
   const corner = document.querySelector(".login-corner");
   if (!corner) return;
-
-  const { data: { user } } = await supabase.auth.getUser();
 
   if (user) {
     const displayName =
@@ -47,6 +45,17 @@ export async function initLoginCorner() {
       });
     });
   }
+}
+
+export async function initLoginCorner() {
+  // Get initial state
+  const { data: { user } } = await supabase.auth.getUser();
+  renderLoginCorner(user);
+
+  // Listen for changes
+  supabase.auth.onAuthStateChange((event, session) => {
+    renderLoginCorner(session?.user ?? null);
+  });
 }
 
 // auto-init
