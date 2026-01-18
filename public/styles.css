@@ -196,6 +196,8 @@ a:hover {
 }
 
 .asset-meta .date-info {
+    display: block;
+    margin-top: 0.4em;
     font-size: 0.9em;
     color: #9ca3af;
 }
