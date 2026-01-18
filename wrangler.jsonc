@@ -5,6 +5,10 @@
   "assets": {
     "directory": "./public"
   },
+  "vars": {
+    "SUPABASE_URL": "https://msgozdhtfawuadxerkxq.supabase.co",
+    "SUPABASE_KEY": "sb_publishable_wnNxDxsZA_SazdahnpMiIg__zR2QQvv"
+  },
   "observability": {
     "logs": {
       "enabled": true,
