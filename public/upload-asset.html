@@ -27,30 +27,32 @@
       ></textarea>
     </div>
 
-    <div class="form-group">
-      <label for="title">Title</label>
-      <input type="text" id="title" placeholder="Ring Arrangement (optional)" />
-    </div>
-
-    <div class="form-group">
-      <label for="description">Description</label>
-      <textarea id="description" rows="3" placeholder="Brief description (optional)"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label>Preview Image</label>
-      <div class="image-dropzone" id="image-dropzone">
-        <input type="file" id="image-input" accept="image/*" hidden />
-        <div class="dropzone-content">
-          <span class="dropzone-icon">📷</span>
-          <span class="dropzone-text">Drag & drop an image here<br />or click to select</span>
-        </div>
-        <img id="image-preview" class="image-preview" alt="Preview" />
-        <button type="button" id="remove-image" class="remove-image">×</button>
+    <div id="more-fields" style="display: none;">
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" id="title" placeholder="Ring Arrangement (optional)" />
       </div>
-    </div>
 
-    <button type="submit">Submit Asset</button>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" rows="3" placeholder="Brief description (optional)"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Preview Image</label>
+        <div class="image-dropzone" id="image-dropzone">
+          <input type="file" id="image-input" accept="image/*" hidden />
+          <div class="dropzone-content">
+            <span class="dropzone-icon">📷</span>
+            <span class="dropzone-text">Drag & drop an image here<br />or click to select</span>
+          </div>
+          <img id="image-preview" class="image-preview" alt="Preview" />
+          <button type="button" id="remove-image" class="remove-image">×</button>
+        </div>
+      </div>
+
+      <button type="submit">Submit Asset</button>
+    </div>
   </form>
 
   <div id="output" class="status-message">
@@ -71,6 +73,8 @@
     const output = document.getElementById("output");
     const statusIcon = output.querySelector(".status-icon");
     const statusText = output.querySelector(".status-text");
+    const assetDataInput = document.getElementById("asset-data");
+    const moreFields = document.getElementById("more-fields");
 
     let statusTimeout;
 
@@ -111,6 +115,26 @@
       }, 1000);
     }
 
+    // ---------------- CONDITIONAL FIELDS SHOW/HIDE ----------------
+    // Extra logic for "once-typed, fields stay"
+    let hasAssetDataBeenTouched = false;
+
+    function updateMoreFieldsVisibility() {
+      const val = assetDataInput.value.trim();
+      if (!hasAssetDataBeenTouched && val.length >= 1) {
+        hasAssetDataBeenTouched = true;
+      }
+      if (hasAssetDataBeenTouched) {
+        moreFields.style.display = "";
+      } else {
+        moreFields.style.display = "none";
+      }
+    }
+
+    assetDataInput.addEventListener("input", updateMoreFieldsVisibility);
+    updateMoreFieldsVisibility();
+
+    // IMAGE UI hooks in 'more-fields' context
     const imageDropzone = document.getElementById("image-dropzone");
     const imageInput = document.getElementById("image-input");
     const imagePreview = document.getElementById("image-preview");
@@ -156,11 +180,13 @@
       imageDropzone.classList.remove("has-image");
     });
 
-    // Handle Ctrl+V / Cmd+V paste for images
+    // Handle Ctrl+V / Cmd+V paste for images (only when moreFields is visible)
     document.addEventListener("paste", e => {
+      // Only if shown
+      if (moreFields.style.display === "none") return;
       const items = e.clipboardData?.items;
       if (!items) return;
-      
+
       for (const item of items) {
         if (item.type.startsWith("image/")) {
           e.preventDefault();
@@ -174,6 +200,9 @@
     // ---------------- WRITE ----------------
     form.onsubmit = async e => {
       e.preventDefault();
+
+      // Only allow submit when moreFields is visible
+      if (moreFields.style.display === "none") return;
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -223,6 +252,9 @@
         selectedImageFile = null;
         imagePreview.src = "";
         imageDropzone.classList.remove("has-image");
+        // Also reset hasAssetDataBeenTouched so user returns to "untouched" logic again.
+        hasAssetDataBeenTouched = false;
+        updateMoreFieldsVisibility(); // reset show/hide
       } else {
         showStatus("error", await res.text());
       }
