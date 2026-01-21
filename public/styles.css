@@ -222,7 +222,7 @@ a:hover {
     padding: 0.15em 0.45em;
     border-radius: 4px;
     font-size: 0.7em;
-    font-weight: 600;
+    font-weight: 500;
     white-space: nowrap;
 }
 
@@ -242,8 +242,8 @@ a:hover {
 }
 
 .assets-list .asset-tag--blender {
-    background: #ffedd5;
-    color: #c2410c;
+    background: #f1f5f9;
+    color: #64748b;
 }
 
 .assets-list .loading-item,
