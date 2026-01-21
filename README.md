@@ -1,56 +1,42 @@
-# geo-nodes-xyz
+# Tree Clipper Sharing Platfrom🌲
 
-## Deployment to Cloudflare Pages
+A community platform for sharing Blender geometry node trees. Upload, browse, and copy node setups with a single click.
 
-This project is configured for deployment to Cloudflare Pages.
+Can be used togehter with this Blender extension: 
+https://github.com/Algebraic-UG/tree_clipper
 
-### Prerequisites
+## Community
 
-- Node.js installed
-- Cloudflare account
-- Wrangler CLI installed (optional, for local development)
+Join the Discord: [discord.gg/T8wwzGQ8Ax](https://discord.gg/T8wwzGQ8Ax)
 
-### Local Development
+
+## Features
+
+- **Browse Assets** – View community-uploaded geometry node trees
+- **One-Click Copy** – Copy asset data directly to clipboard for pasting into Blender
+- **Discord Auth** – Log in with Discord to upload your own assets
+- **Preview Images** – Attach screenshots to your uploads
+- **Cloudflare Workers** – Fast, globally distributed backend
+
+## Tech Stack
+
+- **Frontend**: Vanilla HTML/CSS/JS (static files in `/public`)
+- **Backend**: Cloudflare Workers (`/src/index.js`)
+- **Database**: Supabase (PostgreSQL + Storage)
+- **Auth**: Supabase Auth with Discord OAuth
+
+
+
+## Local Development
 
 ```bash
 # Install dependencies
 npm install
 
-# Run local development server
-npm run dev
+# Start local dev server
+npx wrangler dev
 ```
 
-### Deploy to Cloudflare Pages
+## License
 
-#### Option 1: Using Wrangler CLI
-
-```bash
-# Install Wrangler globally (if not already installed)
-npm install -g wrangler
-
-# Login to Cloudflare
-wrangler login
-
-# Deploy
-npm run deploy
-```
-
-#### Option 2: Using Cloudflare Dashboard
-
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. Navigate to **Pages** → **Create a project**
-3. Connect your Git repository or upload the project files
-4. Set build settings:
-   - **Build command**: (leave empty for static sites)
-   - **Build output directory**: `/` (root directory)
-5. Click **Save and Deploy**
-
-### Project Structure
-
-```
-geo-nodes-xyz/
-├── index.html          # Main HTML file
-├── wrangler.toml       # Cloudflare configuration
-├── package.json        # Node.js dependencies
-└── README.md          # This file
-```
+See [LICENSE](LICENSE) for details.
