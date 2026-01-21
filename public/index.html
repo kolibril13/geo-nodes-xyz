@@ -39,11 +39,18 @@
                 listEl.innerHTML = entries.map(entry => {
                     const title = entry.title || "Untitled Asset";
                     const author = entry.author || "Unknown";
+                    const imageUrl = entry.image_data;
+                    const imageHtml = imageUrl 
+                        ? `<img src="${escapeHtml(imageUrl)}" alt="" class="asset-thumb" loading="lazy">`
+                        : `<div class="asset-thumb-placeholder">📦</div>`;
                     return `
                         <li>
                             <a href="asset.html?id=${encodeURIComponent(entry.asset_id)}">
-                                <span class="asset-title">${escapeHtml(title)}</span>
-                                <span class="asset-author">by ${escapeHtml(author)}</span>
+                                ${imageHtml}
+                                <div class="asset-info">
+                                    <span class="asset-title">${escapeHtml(title)}</span>
+                                    <span class="asset-author">by ${escapeHtml(author)}</span>
+                                </div>
                             </a>
                         </li>
                     `;
