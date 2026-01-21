@@ -35,53 +35,56 @@
             }
             
             try {
-                const res = await fetch("/api/entries");
-                const entries = await res.json();
+                const res = await fetch(`/api/entries?id=${encodeURIComponent(assetId)}`);
                 
-                const asset = entries.find(e => e.asset_id === assetId);
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        document.getElementById("asset-title").textContent = "Asset Not Found";
+                        document.getElementById("asset-data").textContent = "The requested asset does not exist";
+                        return;
+                    }
+                    throw new Error(`HTTP ${res.status}`);
+                }
                 
-                if (asset) {
-                    // Update page title
-                    document.title = `${asset.title || "Asset"} - Tree Clipper`;
-                    
-                    // Update title
-                    const titleEl = document.getElementById("asset-title");
-                    titleEl.textContent = asset.title || "Untitled Asset";
-                    
-                    // Update meta info
-                    const metaEl = document.getElementById("asset-meta");
-                    const author = asset.author || "Unknown";
-                    const description = asset.description || "";
-                    
-                    // Format dates
-                    const createdDate = asset.creation_date ? formatDate(asset.creation_date) : null;
-                    const updatedDate = asset.last_update ? formatDate(asset.last_update) : null;
-                    
-                    let metaHtml = `by <strong>${escapeHtml(author)}</strong>`;
-                    if (description) metaHtml += ` — ${escapeHtml(description)}`;
-                    if (createdDate) {
-                        metaHtml += `<br><span class="date-info">Created: ${createdDate}`;
-                        if (updatedDate && updatedDate !== createdDate) {
-                            metaHtml += ` · Updated: ${updatedDate}`;
-                        }
-                        metaHtml += `</span>`;
+                const asset = await res.json();
+                
+                // Update page title
+                document.title = `${asset.title || "Asset"} - Tree Clipper`;
+                
+                // Update title
+                const titleEl = document.getElementById("asset-title");
+                titleEl.textContent = asset.title || "Untitled Asset";
+                
+                // Update meta info
+                const metaEl = document.getElementById("asset-meta");
+                const author = asset.author || "Unknown";
+                const description = asset.description || "";
+                
+                // Format dates
+                const createdDate = asset.creation_date ? formatDate(asset.creation_date) : null;
+                const updatedDate = asset.last_update ? formatDate(asset.last_update) : null;
+                
+                let metaHtml = `by <strong>${escapeHtml(author)}</strong>`;
+                if (description) metaHtml += ` — ${escapeHtml(description)}`;
+                if (createdDate) {
+                    metaHtml += `<br><span class="date-info">Created: ${createdDate}`;
+                    if (updatedDate && updatedDate !== createdDate) {
+                        metaHtml += ` · Updated: ${updatedDate}`;
                     }
-                    metaEl.innerHTML = metaHtml;
-                    
-                    // Update asset data
-                    const dataEl = document.getElementById("asset-data");
-                    dataEl.textContent = asset.asset_data || "No data available";
-                    
-                    // Update image if available
-                    const imgEl = document.getElementById("asset-img");
-                    const imageUrl = asset.image_data;
-                    if (imageUrl) {
-                        imgEl.src = imageUrl;
-                        imgEl.style.display = "block";
-                    }
-                } else {
-                    document.getElementById("asset-title").textContent = "Asset Not Found";
-                    document.getElementById("asset-data").textContent = "The requested asset does not exist";
+                    metaHtml += `</span>`;
+                }
+                metaEl.innerHTML = metaHtml;
+                
+                // Update asset data
+                const dataEl = document.getElementById("asset-data");
+                dataEl.textContent = asset.asset_data || "No data available";
+                
+                // Update image if available
+                const imgEl = document.getElementById("asset-img");
+                const imageUrl = asset.image_data;
+                if (imageUrl) {
+                    imgEl.src = imageUrl;
+                    imgEl.style.display = "block";
                 }
             } catch (err) {
                 console.error("Failed to load asset:", err);

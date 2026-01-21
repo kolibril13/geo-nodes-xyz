@@ -16,6 +16,25 @@ export default {
 
     // ---------- PUBLIC READ ----------
     if (request.method === "GET") {
+      const url = new URL(request.url);
+      const assetId = url.searchParams.get("id");
+
+      // Single asset lookup by ID
+      if (assetId) {
+        const { data, error } = await supabase
+          .from("entries")
+          .select("*")
+          .eq("asset_id", assetId)
+          .single();
+
+        if (error) {
+          return new Response(error.message, { status: error.code === "PGRST116" ? 404 : 500 });
+        }
+
+        return Response.json(data);
+      }
+
+      // List all entries
       const { data, error } = await supabase
         .from("entries")
         .select("*")
