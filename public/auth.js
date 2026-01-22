@@ -13,21 +13,35 @@ export const supabase = createClient(
 
 // Cache for user profile data
 let cachedUserProfile = null;
+// Promise for in-flight profile fetch to avoid duplicate requests
+let profileFetchPromise = null;
 
 // Fetch user profile (username) from our users table
 async function fetchUserProfile(accessToken) {
-  try {
-    const res = await fetch("/api/users/me", {
-      headers: { "Authorization": `Bearer ${accessToken}` }
-    });
-    if (res.ok) {
-      cachedUserProfile = await res.json();
-      return cachedUserProfile;
+  // Return cached if available
+  if (cachedUserProfile) return cachedUserProfile;
+  
+  // If a fetch is already in progress, wait for it
+  if (profileFetchPromise) return profileFetchPromise;
+  
+  profileFetchPromise = (async () => {
+    try {
+      const res = await fetch("/api/users/me", {
+        headers: { "Authorization": `Bearer ${accessToken}` }
+      });
+      if (res.ok) {
+        cachedUserProfile = await res.json();
+        return cachedUserProfile;
+      }
+    } catch {
+      // Ignore errors
     }
-  } catch {
-    // Ignore errors
-  }
-  return null;
+    return null;
+  })();
+  
+  const result = await profileFetchPromise;
+  profileFetchPromise = null;
+  return result;
 }
 
 // Check if user needs to claim a username (redirect if needed)

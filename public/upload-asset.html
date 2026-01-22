@@ -80,13 +80,11 @@
   <div class="prototype-warning">⚠️ Early Prototype. Work in progress. All data will be deleted every few hours.</div>
 
   <script type="module">
-    import { supabase, initLoginCorner, ensureUsername } from "./auth.js";
-
-    // Init login corner
-    initLoginCorner();
+    import { supabase, ensureUsername } from "./auth.js";
+    // Note: initLoginCorner is auto-called by auth.js, no need to call it here
     
-    // Ensure user has a username before allowing uploads
-    await ensureUsername();
+    // Ensure user has a username before allowing uploads (runs in parallel with login corner init)
+    ensureUsername();
 
     const form = document.getElementById("asset-form");
     const loginPrompt = document.getElementById("login-prompt");
