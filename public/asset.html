@@ -29,11 +29,20 @@
 
     <script type="module">
         async function loadAsset() {
-            // Support both new /:username/:slug and old ?id= format
+            // Support clean URL /:username/:slug, query params ?author=&slug=, and old ?id= format
             const params = new URLSearchParams(window.location.search);
             const assetId = params.get('id');
-            const username = params.get('author');
-            const slug = params.get('slug');
+            let username = params.get('author');
+            let slug = params.get('slug');
+            
+            // Try to parse from clean URL path: /:username/:slug
+            if (!username || !slug) {
+                const pathParts = window.location.pathname.split('/').filter(Boolean);
+                if (pathParts.length === 2 && !pathParts[1].includes('.')) {
+                    username = decodeURIComponent(pathParts[0]);
+                    slug = decodeURIComponent(pathParts[1]);
+                }
+            }
             
             let apiUrl;
             if (username && slug) {

@@ -52,14 +52,9 @@ export default {
       !url.pathname.startsWith("/api") &&
       !pathParts[1].includes(".")
     ) {
-      // This looks like /:username/:slug - serve asset.html with query params
-      const [username, slug] = pathParts;
-      const assetUrl = new URL("/asset.html", url.origin);
-      assetUrl.searchParams.set("author", username);
-      assetUrl.searchParams.set("slug", slug);
-      
-      // Fetch the asset page and return it (internal rewrite, not redirect)
-      const assetPageRequest = new Request(assetUrl.toString(), request);
+      // This looks like /:username/:slug - serve asset.html
+      // The page will parse the path from the original URL
+      const assetPageRequest = new Request(new URL("/asset.html", url.origin).toString(), request);
       return env.ASSETS.fetch(assetPageRequest);
     }
     
