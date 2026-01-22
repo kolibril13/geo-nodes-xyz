@@ -31,11 +31,13 @@
       <h2>Edit Asset</h2>
       
       <form id="edit-form" class="asset-form">
-        <input type="hidden" id="edit-asset-id" />
+        <input type="hidden" id="edit-author" />
+        <input type="hidden" id="edit-slug" />
         
         <div class="form-group">
-          <label for="edit-title">Title</label>
-          <input type="text" id="edit-title" placeholder="Asset title" />
+          <label>Title</label>
+          <input type="text" id="edit-title" disabled style="background: #f3f4f6; cursor: not-allowed;" />
+          <small style="color: #6b7280; font-size: 0.85em;">Title cannot be changed (used in URL)</small>
         </div>
 
         <div class="form-group">
@@ -94,7 +96,6 @@
       <h2>Delete Asset?</h2>
       <p id="delete-asset-name" class="delete-warning"></p>
       <p class="delete-warning-sub">This action cannot be undone.</p>
-      <input type="hidden" id="delete-asset-id" />
       <div class="modal-actions">
         <button type="button" id="cancel-delete" class="btn-secondary">Cancel</button>
         <button type="button" id="confirm-delete" class="btn-danger">Delete</button>
@@ -127,7 +128,8 @@
     // Edit modal elements
     const editModal = document.getElementById("edit-modal");
     const editForm = document.getElementById("edit-form");
-    const editAssetId = document.getElementById("edit-asset-id");
+    const editAuthor = document.getElementById("edit-author");
+    const editSlug = document.getElementById("edit-slug");
     const editTitle = document.getElementById("edit-title");
     const editDescription = document.getElementById("edit-description");
     const editAssetData = document.getElementById("edit-asset-data");
@@ -141,8 +143,9 @@
 
     // Delete modal elements
     const deleteModal = document.getElementById("delete-modal");
-    const deleteAssetId = document.getElementById("delete-asset-id");
     const deleteAssetName = document.getElementById("delete-asset-name");
+    let deleteAuthor = null;
+    let deleteSlug = null;
 
     // Edit meta elements
     const editAssetMeta = document.getElementById("edit-asset-meta");
@@ -238,10 +241,15 @@
             tagsHtml += '</div>';
           }
           
+          // Use new URL format if slug exists, fallback to old format
+          const assetUrl = entry.slug 
+              ? `/${encodeURIComponent(entry.author)}/${encodeURIComponent(entry.slug)}`
+              : `asset.html?id=${encodeURIComponent(entry.asset_id)}`;
+          
           return `
-            <li data-asset-id="${escapeHtml(entry.asset_id)}">
+            <li data-slug="${escapeHtml(entry.slug || '')}" data-author="${escapeHtml(entry.author || '')}">
               <div class="dashboard-asset-row">
-                <a href="asset.html?id=${encodeURIComponent(entry.asset_id)}" class="asset-link">
+                <a href="${assetUrl}" class="asset-link">
                   ${imageHtml}
                   <div class="asset-info">
                     <span class="asset-title">${escapeHtml(title)}</span>
@@ -250,8 +258,8 @@
                   </div>
                 </a>
                 <div class="asset-actions">
-                  <button class="btn-edit" data-id="${escapeHtml(entry.asset_id)}" title="Edit">✏️</button>
-                  <button class="btn-delete" data-id="${escapeHtml(entry.asset_id)}" data-title="${escapeHtml(title)}" title="Delete">🗑️</button>
+                  <button class="btn-edit" data-author="${escapeHtml(entry.author || '')}" data-slug="${escapeHtml(entry.slug || '')}" title="Edit">✏️</button>
+                  <button class="btn-delete" data-author="${escapeHtml(entry.author || '')}" data-slug="${escapeHtml(entry.slug || '')}" data-title="${escapeHtml(title)}" title="Delete">🗑️</button>
                 </div>
               </div>
             </li>
@@ -260,11 +268,11 @@
 
         // Attach event listeners
         assetsList.querySelectorAll(".btn-edit").forEach(btn => {
-          btn.addEventListener("click", () => openEditModal(btn.dataset.id));
+          btn.addEventListener("click", () => openEditModal(btn.dataset.author, btn.dataset.slug));
         });
 
         assetsList.querySelectorAll(".btn-delete").forEach(btn => {
-          btn.addEventListener("click", () => openDeleteModal(btn.dataset.id, btn.dataset.title));
+          btn.addEventListener("click", () => openDeleteModal(btn.dataset.author, btn.dataset.slug, btn.dataset.title));
         });
 
       } catch (err) {
@@ -403,14 +411,15 @@
     }
 
     // ---------------- EDIT MODAL ----------------
-    async function openEditModal(assetId) {
+    async function openEditModal(author, slug) {
       try {
-        const res = await fetch(`/api/entries?id=${encodeURIComponent(assetId)}`);
+        const res = await fetch(`/api/asset/${encodeURIComponent(author)}/${encodeURIComponent(slug)}`);
         if (!res.ok) throw new Error("Asset not found");
         
         const asset = await res.json();
         
-        editAssetId.value = asset.asset_id;
+        editAuthor.value = asset.author;
+        editSlug.value = asset.slug;
         editTitle.value = asset.title || "";
         editDescription.value = asset.description || "";
         editAssetData.value = asset.asset_data || "";
@@ -462,12 +471,13 @@
     removeCurrentImageBtn.addEventListener("click", async () => {
       if (!currentSession || !currentImageUrl) return;
 
-      const assetId = editAssetId.value;
+      const author = editAuthor.value;
+      const slug = editSlug.value;
       removeCurrentImageBtn.disabled = true;
       removeCurrentImageBtn.textContent = "Removing...";
 
       try {
-        const res = await fetch(`/api/entries?id=${encodeURIComponent(assetId)}`, {
+        const res = await fetch(`/api/entries?author=${encodeURIComponent(author)}&slug=${encodeURIComponent(slug)}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -560,7 +570,8 @@
         return;
       }
 
-      const assetId = editAssetId.value;
+      const author = editAuthor.value;
+      const slug = editSlug.value;
       let imageUrl = undefined; // undefined = don't change
 
       // Handle new image upload
@@ -593,7 +604,7 @@
       }
 
       const payload = {
-        title: editTitle.value.trim() || null,
+        // Title cannot be changed - it determines the URL
         description: editDescription.value.trim() || null,
         assetData: editAssetData.value.trim(),
         nodeType: parsedAssetMeta?.nodeType || null,
@@ -606,7 +617,7 @@
       }
 
       try {
-        const res = await fetch(`/api/entries?id=${encodeURIComponent(assetId)}`, {
+        const res = await fetch(`/api/entries?author=${encodeURIComponent(author)}&slug=${encodeURIComponent(slug)}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -628,14 +639,17 @@
     });
 
     // ---------------- DELETE MODAL ----------------
-    function openDeleteModal(assetId, title) {
-      deleteAssetId.value = assetId;
+    function openDeleteModal(author, slug, title) {
+      deleteAuthor = author;
+      deleteSlug = slug;
       deleteAssetName.textContent = `"${title}"`;
       deleteModal.style.display = "flex";
     }
 
     function closeDeleteModal() {
       deleteModal.style.display = "none";
+      deleteAuthor = null;
+      deleteSlug = null;
     }
 
     document.getElementById("cancel-delete").addEventListener("click", closeDeleteModal);
@@ -650,10 +664,13 @@
         return;
       }
 
-      const assetId = deleteAssetId.value;
+      if (!deleteAuthor || !deleteSlug) {
+        showStatus("error", "Missing asset information");
+        return;
+      }
 
       try {
-        const res = await fetch(`/api/entries?id=${encodeURIComponent(assetId)}`, {
+        const res = await fetch(`/api/entries?author=${encodeURIComponent(deleteAuthor)}&slug=${encodeURIComponent(deleteSlug)}`, {
           method: "DELETE",
           headers: {
             "Authorization": `Bearer ${currentSession.access_token}`
