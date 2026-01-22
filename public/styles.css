@@ -398,12 +398,21 @@ a:hover {
     margin-bottom: 1em;
 }
 
+/* Asset image container */
+.asset-img-container {
+    flex-shrink: 0;
+    display: none;
+}
+
+.asset-img-container.loaded {
+    display: block;
+}
+
 .asset-img {
     max-width: 300px;
     max-height: 250px;
     display: block;
     box-sizing: border-box;
-    flex-shrink: 0;
     object-fit: contain;
 }
 
@@ -422,9 +431,9 @@ a:hover {
     .asset-layout {
         flex-direction: column;
     }
-    .asset-img {
+    .asset-img-container {
+        width: 100%;
         max-width: 100%;
-        margin: 0 auto;
     }
 }
 

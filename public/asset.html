@@ -10,11 +10,13 @@
     <div class="login-corner"></div>
     <a href="/" class="back-button">←</a>
     <h1>
-        <span id="asset-title" style="color: #232323;">Loading...</span>
+        <span id="asset-title" style="color: #232323;">&nbsp;</span>
     </h1>
     
     <div class="asset-layout">
-        <img id="asset-img" src="" class="asset-img" style="display: none;">
+        <div id="asset-img-container" class="asset-img-container">
+            <img id="asset-img" src="" class="asset-img">
+        </div>
         <div class="copy-asset">
             <p>Asset data:</p>
             <pre id="asset-data">Loading...</pre>
@@ -127,10 +129,17 @@
                 
                 // Update image if available
                 const imgEl = document.getElementById("asset-img");
+                const containerEl = document.getElementById("asset-img-container");
                 const imageUrl = asset.image_data;
+                
                 if (imageUrl) {
-                    imgEl.src = imageUrl;
-                    imgEl.style.display = "block";
+                    // Preload image before showing to prevent any jumping
+                    const preloadImg = new Image();
+                    preloadImg.onload = () => {
+                        imgEl.src = imageUrl;
+                        containerEl.classList.add("loaded");
+                    };
+                    preloadImg.src = imageUrl;
                 }
             } catch (err) {
                 console.error("Failed to load asset:", err);
