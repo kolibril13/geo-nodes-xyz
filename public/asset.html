@@ -23,7 +23,7 @@
     </div>
     
     <!-- Compatibility info section -->
-    <div id="compat-info" class="compat-info" style="display: none;"></div>
+    <div id="compat-info" class="asset-tags-detail" style="display: none;"></div>
     
     <div id="asset-meta" class="asset-meta"></div>
 
@@ -89,27 +89,15 @@
                     if (asset.node_type) {
                         const nodeTypeLabel = formatNodeType(asset.node_type);
                         const nodeTypeIcon = getNodeTypeIcon(asset.node_type);
-                        compatHtml += `
-                            <div class="compat-tag compat-tag--${asset.node_type}">
-                                <span class="compat-icon">${nodeTypeIcon}</span>
-                                <span class="compat-value">${nodeTypeLabel}</span>
-                            </div>`;
+                        compatHtml += `<span class="asset-tag asset-tag--${asset.node_type}">${nodeTypeIcon} ${nodeTypeLabel}</span>`;
                     }
                     
                     if (asset.blender_version) {
-                        compatHtml += `
-                            <div class="compat-tag compat-tag--blender">
-                                <span class="compat-label">Blender</span>
-                                <span class="compat-value">${escapeHtml(asset.blender_version)}</span>
-                            </div>`;
+                        compatHtml += `<span class="asset-tag asset-tag--blender">Blender ${escapeHtml(asset.blender_version)}</span>`;
                     }
                     
                     if (asset.treeclipper_version) {
-                        compatHtml += `
-                            <div class="compat-tag compat-tag--treeclipper">
-                                <span class="compat-label">TreeClipper</span>
-                                <span class="compat-value">${escapeHtml(asset.treeclipper_version)}</span>
-                            </div>`;
+                        compatHtml += `<span class="asset-tag asset-tag--treeclipper">TreeClipper ${escapeHtml(asset.treeclipper_version)}</span>`;
                     }
                     
                     compatEl.innerHTML = compatHtml;
