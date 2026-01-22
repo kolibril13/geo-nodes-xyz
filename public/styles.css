@@ -328,6 +328,11 @@ a:hover {
     color: #374151;
 }
 
+.asset-meta .asset-description {
+    display: block;
+    margin-top: 0.4em;
+}
+
 .asset-meta .date-info {
     display: block;
     margin-top: 0.4em;
