@@ -196,6 +196,54 @@ export default {
       return new Response("Username claimed ✅", { status: 201 });
     }
     
+    // DELETE /api/users/me - Delete current user's account
+    if (url.pathname === "/api/users/me" && request.method === "DELETE") {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData?.user) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+      
+      const userId = userData.user.id;
+      
+      // Get user's username to find their entries
+      const { data: userProfile } = await supabase
+        .from("users")
+        .select("username")
+        .eq("id", userId)
+        .single();
+      
+      if (userProfile?.username) {
+        // 1. Delete all images from storage by listing and removing the user's folder
+        const { data: files } = await supabase.storage
+          .from("asset-images")
+          .list(userProfile.username);
+        
+        if (files && files.length > 0) {
+          const filePaths = files.map(f => `${userProfile.username}/${f.name}`);
+          await supabase.storage.from("asset-images").remove(filePaths);
+        }
+        
+        // 2. Delete all entries from the database
+        await supabase
+          .from("entries")
+          .delete()
+          .eq("user_id", userId);
+      }
+      
+      // 4. Delete the user from the users table
+      const { error: deleteUserError } = await supabase
+        .from("users")
+        .delete()
+        .eq("id", userId);
+      
+      if (deleteUserError) {
+        return new Response(deleteUserError.message, { status: 500 });
+      }
+      
+      return new Response("Account deleted", { status: 200 });
+    }
+    
     // GET /api/users/:username - Get user by username (public)
     if (url.pathname.startsWith("/api/users/") && request.method === "GET") {
       const username = url.pathname.split("/api/users/")[1];

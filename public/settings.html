@@ -163,6 +163,99 @@
       background: #dc2626;
       color: white;
     }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 2em;
+      max-width: 450px;
+      width: 90%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .danger-modal {
+      border: 2px solid #fecaca;
+    }
+
+    .danger-modal h2 {
+      color: #991b1b;
+      margin: 0 0 1em 0;
+      font-size: 1.3em;
+    }
+
+    .danger-modal p {
+      color: #374151;
+      margin: 0 0 0.8em 0;
+      font-size: 0.95em;
+    }
+
+    .danger-modal ul {
+      color: #7f1d1d;
+      margin: 0 0 1em 0;
+      padding-left: 1.5em;
+      font-size: 0.9em;
+    }
+
+    .danger-modal li {
+      margin-bottom: 0.3em;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1em;
+      justify-content: flex-end;
+      margin-top: 1.5em;
+    }
+
+    .btn-secondary {
+      padding: 0.6em 1.2em;
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-danger {
+      padding: 0.6em 1.2em;
+      background: #dc2626;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    .btn-danger:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -220,10 +313,28 @@
     <section class="settings-section danger-zone">
       <h2><span class="icon">⚠️</span> Danger Zone</h2>
       <p>Deleting your account will permanently remove all your assets and data. This cannot be undone.</p>
-      <button class="btn-danger-outline" id="delete-account-btn" disabled title="Coming soon">
+      <button class="btn-danger-outline" id="delete-account-btn">
         Delete Account
       </button>
     </section>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal-overlay" style="display: none;">
+      <div class="modal-content danger-modal">
+        <h2>⚠️ Delete Account</h2>
+        <p>Are you sure you want to delete your account? This will permanently remove:</p>
+        <ul>
+          <li>All your uploaded assets</li>
+          <li>All your asset images</li>
+          <li>Your username and profile</li>
+        </ul>
+        <p><strong>This action cannot be undone.</strong></p>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="cancel-delete-btn">Cancel</button>
+          <button class="btn-danger" id="confirm-delete-btn">Delete My Account</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div id="output" class="status-message">
@@ -315,6 +426,73 @@
     supabase.auth.onAuthStateChange((event, session) => {
       currentSession = session;
       updateAuthUI(session?.user ?? null);
+    });
+
+    // ---------------- DELETE ACCOUNT ----------------
+    const deleteModal = document.getElementById("delete-modal");
+    const deleteAccountBtn = document.getElementById("delete-account-btn");
+    const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+    const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+    const output = document.getElementById("output");
+
+    function showStatus(message, isError = false) {
+      output.style.display = "flex";
+      output.className = `status-message ${isError ? "error" : "success"}`;
+      output.querySelector(".status-icon").textContent = isError ? "✕" : "✓";
+      output.querySelector(".status-text").textContent = message;
+      
+      if (!isError) {
+        setTimeout(() => {
+          output.style.display = "none";
+        }, 3000);
+      }
+    }
+
+    deleteAccountBtn.addEventListener("click", () => {
+      deleteModal.style.display = "flex";
+    });
+
+    cancelDeleteBtn.addEventListener("click", () => {
+      deleteModal.style.display = "none";
+    });
+
+    // Close modal when clicking outside
+    deleteModal.addEventListener("click", (e) => {
+      if (e.target === deleteModal) {
+        deleteModal.style.display = "none";
+      }
+    });
+
+    confirmDeleteBtn.addEventListener("click", async () => {
+      if (!currentSession) {
+        showStatus("Not logged in", true);
+        return;
+      }
+
+      confirmDeleteBtn.disabled = true;
+      confirmDeleteBtn.textContent = "Deleting...";
+
+      try {
+        const res = await fetch("/api/users/me", {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${currentSession.access_token}` }
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText || "Failed to delete account");
+        }
+
+        // Sign out and redirect
+        await supabase.auth.signOut();
+        window.location.href = "/";
+      } catch (err) {
+        console.error("Delete account error:", err);
+        showStatus(err.message || "Failed to delete account", true);
+        confirmDeleteBtn.disabled = false;
+        confirmDeleteBtn.textContent = "Delete My Account";
+        deleteModal.style.display = "none";
+      }
     });
   </script>
 </body>
