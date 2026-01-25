@@ -113,6 +113,32 @@
     <span class="status-text"></span>
   </div>
 
+  <!-- Image Cropper Modal -->
+  <div id="cropper-modal" class="cropper-overlay" style="display: none;">
+    <div class="cropper-modal">
+      <div class="cropper-header">
+        <div>
+          <h3>Crop Thumbnail</h3>
+          <p>Drag to move, drag corners to resize. Thumbnail will be square.</p>
+        </div>
+      </div>
+      <div class="cropper-container" id="cropper-container">
+        <img id="cropper-image" class="cropper-image" alt="Crop preview" />
+        <div class="crop-area" id="crop-area">
+          <div class="crop-handle crop-handle--nw" data-handle="nw"></div>
+          <div class="crop-handle crop-handle--ne" data-handle="ne"></div>
+          <div class="crop-handle crop-handle--sw" data-handle="sw"></div>
+          <div class="crop-handle crop-handle--se" data-handle="se"></div>
+        </div>
+        <div class="crop-size-indicator" id="crop-size-indicator"></div>
+      </div>
+      <div class="cropper-actions">
+        <button type="button" class="btn-cancel-crop" id="cancel-crop">Cancel</button>
+        <button type="button" class="btn-crop" id="confirm-crop">Crop & Use</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { supabase, initLoginCorner, ensureUsername } from "./auth.js";
 
@@ -161,6 +187,207 @@
     let selectedNewImage = null;
     let currentImageUrl = null;
     let parsedAssetMeta = null;
+
+    // ---------------- IMAGE CROPPER ----------------
+    const cropperModal = document.getElementById("cropper-modal");
+    const cropperContainer = document.getElementById("cropper-container");
+    const cropperImage = document.getElementById("cropper-image");
+    const cropArea = document.getElementById("crop-area");
+    const cropSizeIndicator = document.getElementById("crop-size-indicator");
+    const cancelCropBtn = document.getElementById("cancel-crop");
+    const confirmCropBtn = document.getElementById("confirm-crop");
+
+    let pendingImageFile = null;
+    let cropState = {
+      imageWidth: 0,
+      imageHeight: 0,
+      containerWidth: 0,
+      containerHeight: 0,
+      offsetX: 0,
+      offsetY: 0,
+      cropX: 0,
+      cropY: 0,
+      cropSize: 100,
+      dragging: false,
+      resizing: false,
+      resizeHandle: null,
+      startX: 0,
+      startY: 0,
+      startCropX: 0,
+      startCropY: 0,
+      startCropSize: 0
+    };
+
+    function openCropper(file) {
+      pendingImageFile = file;
+      const url = URL.createObjectURL(file);
+      cropperImage.onload = () => {
+        initCropArea();
+        URL.revokeObjectURL(url);
+      };
+      cropperImage.src = url;
+      cropperModal.style.display = "flex";
+    }
+
+    function closeCropper() {
+      cropperModal.style.display = "none";
+      pendingImageFile = null;
+    }
+
+    function initCropArea() {
+      const rect = cropperImage.getBoundingClientRect();
+      const containerRect = cropperContainer.getBoundingClientRect();
+      
+      cropState.imageWidth = rect.width;
+      cropState.imageHeight = rect.height;
+      cropState.containerWidth = containerRect.width;
+      cropState.containerHeight = containerRect.height;
+      cropState.offsetX = rect.left - containerRect.left;
+      cropState.offsetY = rect.top - containerRect.top;
+      
+      // Start with the largest square that fits, centered
+      const minDim = Math.min(rect.width, rect.height);
+      cropState.cropSize = Math.min(minDim * 0.8, 300);
+      cropState.cropX = cropState.offsetX + (rect.width - cropState.cropSize) / 2;
+      cropState.cropY = cropState.offsetY + (rect.height - cropState.cropSize) / 2;
+      
+      updateCropAreaDisplay();
+    }
+
+    function updateCropAreaDisplay() {
+      cropArea.style.left = cropState.cropX + "px";
+      cropArea.style.top = cropState.cropY + "px";
+      cropArea.style.width = cropState.cropSize + "px";
+      cropArea.style.height = cropState.cropSize + "px";
+      
+      // Calculate actual pixel size based on natural image dimensions
+      const scaleX = cropperImage.naturalWidth / cropState.imageWidth;
+      const actualSize = Math.round(cropState.cropSize * scaleX);
+      cropSizeIndicator.textContent = `${actualSize} × ${actualSize}px`;
+    }
+
+    function constrainCrop() {
+      const minSize = 50;
+      const maxSize = Math.min(cropState.imageWidth, cropState.imageHeight);
+      
+      cropState.cropSize = Math.max(minSize, Math.min(cropState.cropSize, maxSize));
+      cropState.cropX = Math.max(cropState.offsetX, Math.min(cropState.cropX, cropState.offsetX + cropState.imageWidth - cropState.cropSize));
+      cropState.cropY = Math.max(cropState.offsetY, Math.min(cropState.cropY, cropState.offsetY + cropState.imageHeight - cropState.cropSize));
+    }
+
+    // Mouse/touch event handlers
+    function getEventPos(e) {
+      if (e.touches && e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      return { x: e.clientX, y: e.clientY };
+    }
+
+    function handleCropStart(e) {
+      e.preventDefault();
+      const pos = getEventPos(e);
+      const handle = e.target.dataset?.handle;
+      
+      cropState.startX = pos.x;
+      cropState.startY = pos.y;
+      cropState.startCropX = cropState.cropX;
+      cropState.startCropY = cropState.cropY;
+      cropState.startCropSize = cropState.cropSize;
+      
+      if (handle) {
+        cropState.resizing = true;
+        cropState.resizeHandle = handle;
+      } else if (e.target === cropArea || e.target.closest("#crop-area")) {
+        cropState.dragging = true;
+      }
+    }
+
+    function handleCropMove(e) {
+      if (!cropState.dragging && !cropState.resizing) return;
+      e.preventDefault();
+      
+      const pos = getEventPos(e);
+      const dx = pos.x - cropState.startX;
+      const dy = pos.y - cropState.startY;
+      
+      if (cropState.dragging) {
+        cropState.cropX = cropState.startCropX + dx;
+        cropState.cropY = cropState.startCropY + dy;
+      } else if (cropState.resizing) {
+        // For square crop, use the larger delta to determine size change
+        const handle = cropState.resizeHandle;
+        let sizeDelta = 0;
+        
+        if (handle === "se") {
+          sizeDelta = Math.max(dx, dy);
+        } else if (handle === "sw") {
+          sizeDelta = Math.max(-dx, dy);
+          cropState.cropX = cropState.startCropX - (cropState.startCropSize + sizeDelta - cropState.startCropSize);
+        } else if (handle === "ne") {
+          sizeDelta = Math.max(dx, -dy);
+          cropState.cropY = cropState.startCropY - (cropState.startCropSize + sizeDelta - cropState.startCropSize);
+        } else if (handle === "nw") {
+          sizeDelta = Math.max(-dx, -dy);
+          cropState.cropX = cropState.startCropX - sizeDelta;
+          cropState.cropY = cropState.startCropY - sizeDelta;
+        }
+        
+        cropState.cropSize = cropState.startCropSize + sizeDelta;
+      }
+      
+      constrainCrop();
+      updateCropAreaDisplay();
+    }
+
+    function handleCropEnd() {
+      cropState.dragging = false;
+      cropState.resizing = false;
+      cropState.resizeHandle = null;
+    }
+
+    cropArea.addEventListener("mousedown", handleCropStart);
+    cropArea.addEventListener("touchstart", handleCropStart, { passive: false });
+    document.addEventListener("mousemove", handleCropMove);
+    document.addEventListener("touchmove", handleCropMove, { passive: false });
+    document.addEventListener("mouseup", handleCropEnd);
+    document.addEventListener("touchend", handleCropEnd);
+
+    cancelCropBtn.addEventListener("click", closeCropper);
+    
+    confirmCropBtn.addEventListener("click", async () => {
+      if (!pendingImageFile) return;
+      
+      // Calculate crop coordinates in original image space
+      const scaleX = cropperImage.naturalWidth / cropState.imageWidth;
+      const scaleY = cropperImage.naturalHeight / cropState.imageHeight;
+      
+      const sourceX = (cropState.cropX - cropState.offsetX) * scaleX;
+      const sourceY = (cropState.cropY - cropState.offsetY) * scaleY;
+      const sourceSize = cropState.cropSize * scaleX;
+      
+      // Create cropped image
+      const canvas = document.createElement("canvas");
+      const outputSize = Math.min(512, Math.round(sourceSize)); // Max 512px for thumbnails
+      canvas.width = outputSize;
+      canvas.height = outputSize;
+      
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(
+        cropperImage,
+        sourceX, sourceY, sourceSize, sourceSize,
+        0, 0, outputSize, outputSize
+      );
+      
+      // Convert to blob
+      const croppedBlob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.92));
+      
+      selectedNewImage = croppedBlob;
+      editImagePreview.src = URL.createObjectURL(croppedBlob);
+      editImageDropzone.classList.add("has-image");
+      currentImageContainer.style.display = "none";
+      
+      closeCropper();
+    });
 
     // ---------------- AUTH STATE ----------------
     function updateAuthUI(user) {
@@ -517,21 +744,13 @@
       e.preventDefault();
       editImageDropzone.classList.remove("dragover");
       const file = e.dataTransfer.files[0];
-      if (file?.type.startsWith("image/")) setNewImage(file);
+      if (file?.type.startsWith("image/")) openCropper(file);
     });
 
     editImageInput.addEventListener("change", e => {
       const file = e.target.files[0];
-      if (file) setNewImage(file);
+      if (file) openCropper(file);
     });
-
-    function setNewImage(file) {
-      selectedNewImage = file;
-      editImagePreview.src = URL.createObjectURL(file);
-      editImageDropzone.classList.add("has-image");
-      // Hide current image since we're replacing
-      currentImageContainer.style.display = "none";
-    }
 
     editRemoveImage.addEventListener("click", e => {
       e.stopPropagation();
@@ -548,6 +767,7 @@
     // Handle paste for images in edit modal
     document.addEventListener("paste", e => {
       if (editModal.style.display !== "flex") return;
+      if (cropperModal.style.display === "flex") return; // Don't intercept if cropper is open
       const items = e.clipboardData?.items;
       if (!items) return;
 
@@ -555,7 +775,7 @@
         if (item.type.startsWith("image/")) {
           e.preventDefault();
           const file = item.getAsFile();
-          if (file) setNewImage(file);
+          if (file) openCropper(file);
           break;
         }
       }
@@ -586,12 +806,14 @@
           return;
         }
         
-        const ext = selectedNewImage.name.split(".").pop();
-        const filePath = `${profile.username}/asset-${Date.now()}.${ext}`;
+        // Cropped images are always JPEG
+        const filePath = `${profile.username}/asset-${Date.now()}.jpg`;
 
         const { error } = await supabase.storage
           .from("asset-images")
-          .upload(filePath, selectedNewImage);
+          .upload(filePath, selectedNewImage, {
+            contentType: "image/jpeg"
+          });
 
         if (error) {
           showStatus("error", "Image upload failed: " + error.message);
@@ -692,8 +914,13 @@
     // Close modals with Escape key
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        if (editModal.style.display === "flex") closeEditModal();
-        if (deleteModal.style.display === "flex") closeDeleteModal();
+        if (cropperModal.style.display === "flex") {
+          closeCropper();
+        } else if (editModal.style.display === "flex") {
+          closeEditModal();
+        } else if (deleteModal.style.display === "flex") {
+          closeDeleteModal();
+        }
       }
     });
   </script>
