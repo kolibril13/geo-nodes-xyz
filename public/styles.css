@@ -132,7 +132,7 @@ a:hover {
 
 .assets-list li {
     border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    border-radius: 8px;
     background: #fff;
     transition: all 0.2s ease;
     overflow: hidden;
@@ -427,7 +427,7 @@ a:hover {
     flex-shrink: 0;
     width: 200px;
     height: 200px;
-    border-radius: 12px;
+    border-radius: 8px;
     background: #e5e7eb;
     display: flex;
     align-items: center;
@@ -450,7 +450,7 @@ a:hover {
     display: block;
     box-sizing: border-box;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 8px;
     opacity: 0;
     transition: opacity 0.3s ease;
 }
