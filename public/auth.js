@@ -55,7 +55,12 @@ export async function ensureUsername() {
     // User doesn't have a username yet, redirect to claim page
     // But not if we're already on the claim page
     if (!window.location.pathname.includes("claim-username")) {
-      window.location.href = "claim-username.html";
+      // Use SPA navigation if available, otherwise fallback to direct navigation
+      if (window.spaNavigate) {
+        window.spaNavigate('/claim-username');
+      } else {
+        window.location.href = "/claim-username";
+      }
       return false;
     }
   }
@@ -79,7 +84,7 @@ function renderLoginCorner(user, profile) {
     corner.innerHTML = '';
     corner.insertAdjacentHTML(
       "afterbegin",
-      `<a href="/my-assets.html" class="login-status"></a><button class="logout-btn">Logout</button>`
+      `<a href="/my-assets" class="login-status"></a><button class="logout-btn">Logout</button>`
     );
     corner.querySelector(".login-status").textContent = displayName;
 
@@ -133,9 +138,10 @@ export function getUserProfile() {
   return cachedUserProfile;
 }
 
-// auto-init
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initLoginCorner);
-} else {
-  initLoginCorner();
+// Clear cached profile (called on logout)
+export function clearCachedProfile() {
+  cachedUserProfile = null;
 }
+
+// NOTE: Auto-init removed for SPA architecture
+// The router now calls initLoginCorner once when the app loads

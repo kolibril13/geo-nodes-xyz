@@ -44,45 +44,26 @@ function generateSlug(title) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    
-    // Check if this is a /:username/:slug route (not /api, not a file with extension)
     const pathParts = url.pathname.split("/").filter(Boolean);
     
-    // /:username - user profile page
-    if (
-      pathParts.length === 1 &&
-      !url.pathname.startsWith("/api") &&
-      !pathParts[0].includes(".")
-    ) {
-      // This looks like /:username - serve user.html but keep the original URL
-      const userHtmlResponse = await env.ASSETS.fetch(new Request(new URL("/user.html", url.origin)));
-      
-      return new Response(userHtmlResponse.body, {
-        status: userHtmlResponse.status,
-        headers: userHtmlResponse.headers
-      });
+    // API routes are handled below
+    if (url.pathname.startsWith("/api")) {
+      // Continue to API handling below
     }
-    
-    // /:username/:slug - asset page
-    if (
-      pathParts.length === 2 &&
-      !url.pathname.startsWith("/api") &&
-      !pathParts[1].includes(".")
-    ) {
-      // This looks like /:username/:slug - serve asset.html but keep the original URL
-      // Fetch asset.html from assets, but return it for the current URL
-      const assetHtmlResponse = await env.ASSETS.fetch(new Request(new URL("/asset.html", url.origin)));
-      
-      // Return the HTML with the same headers but for the original URL
-      return new Response(assetHtmlResponse.body, {
-        status: assetHtmlResponse.status,
-        headers: assetHtmlResponse.headers
-      });
-    }
-    
-    // Let static assets be served by the assets handler
-    if (!url.pathname.startsWith("/api")) {
+    // Static assets (files with extensions) - serve directly
+    else if (pathParts.length > 0 && pathParts[pathParts.length - 1].includes(".")) {
       return env.ASSETS.fetch(request);
+    }
+    // SPA routes - serve index.html for all non-file routes
+    // This includes: /, /my-assets.html (without extension check), /:username, /:username/:slug, etc.
+    else {
+      // Serve the SPA shell (index.html) for all routes - client-side router handles the rest
+      const spaResponse = await env.ASSETS.fetch(new Request(new URL("/index.html", url.origin)));
+      
+      return new Response(spaResponse.body, {
+        status: spaResponse.status,
+        headers: spaResponse.headers
+      });
     }
     
     const authHeader = request.headers.get("Authorization");

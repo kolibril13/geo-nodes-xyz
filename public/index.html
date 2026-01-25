@@ -4,109 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tree Clipper</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+    <!-- Login corner - rendered once, persists across page navigations -->
     <div class="login-corner"></div>
-    <h1>Tree Clipper</h1>
     
-    <ul id="assets-list" class="assets-list">
-        <li class="loading-item">Loading assets...</li>
-    </ul>
-
-    <a href="upload-asset.html" class="upload-btn">+ Upload Asset</a>
-    
-    <footer class="site-footer">
-        <a href="terms.html">Terms</a> · <a href="imprint.html">Imprint</a>
-    </footer>
-    
-    <script type="module">
-        async function loadAssets() {
-            const listEl = document.getElementById("assets-list");
-            
-            try {
-                const res = await fetch("/api/entries");
-                const entries = await res.json();
-                
-                if (!entries || entries.length === 0) {
-                    listEl.innerHTML = '<li class="empty-item">No assets yet. Be the first to upload!</li>';
-                    return;
-                }
-                
-                listEl.innerHTML = entries.map(entry => {
-                    const title = entry.title || "Untitled Asset";
-                    const author = entry.author || "Unknown";
-                    const imageUrl = entry.image_data;
-                    const imageHtml = imageUrl 
-                        ? `<img src="${escapeHtml(imageUrl)}" alt="" class="asset-thumb" loading="lazy">`
-                        : `<div class="asset-thumb-placeholder">📦</div>`;
-                    
-                    // Build tags HTML
-                    let tagsHtml = '';
-                    if (entry.node_type || entry.blender_version) {
-                        tagsHtml = '<div class="asset-tags">';
-                        if (entry.node_type) {
-                            const nodeLabel = formatNodeType(entry.node_type);
-                            const nodeIcon = getNodeTypeIcon(entry.node_type);
-                            tagsHtml += `<span class="asset-tag asset-tag--${entry.node_type}">${nodeIcon} ${nodeLabel}</span>`;
-                        }
-                        if (entry.blender_version) {
-                            tagsHtml += `<span class="asset-tag asset-tag--blender">Blender ${escapeHtml(entry.blender_version)}</span>`;
-                        }
-                        tagsHtml += '</div>';
-                    }
-                    
-                    const assetUrl = `/${encodeURIComponent(author)}/${encodeURIComponent(entry.slug)}`;
-                    
-                    return `
-                        <li>
-                            <a href="${assetUrl}">
-                                ${imageHtml}
-                                <div class="asset-info">
-                                    <span class="asset-title">${escapeHtml(title)}</span>
-                                    <span class="asset-author">by @${escapeHtml(author)}</span>
-                                    ${tagsHtml}
-                                </div>
-                            </a>
-                        </li>
-                    `;
-                }).join('');
-                
-            } catch (err) {
-                console.error("Failed to load assets:", err);
-                listEl.innerHTML = '<li class="error-item">Failed to load assets. Please try again later.</li>';
-            }
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        function formatNodeType(nodeType) {
-            const labels = {
-                'geonodes': 'Geo Nodes',
-                'shader': 'Shader',
-                'compositor': 'Compositor'
-            };
-            return labels[nodeType] || nodeType;
-        }
-        
-        function getNodeTypeIcon(nodeType) {
-            const icons = {
-                'geonodes': '◇',
-                'shader': '◐',
-                'compositor': '▣'
-            };
-            return icons[nodeType] || '●';
-        }
-        
-        loadAssets();
-    </script>
-    
-    <script type="module" src="auth.js"></script>
+    <!-- SPA content container - page content loaded here dynamically -->
+    <div id="spa-content">
+        <div class="loading-item" style="text-align: center; padding: 2em;">Loading...</div>
+    </div>
     
     <div class="prototype-warning">Early Prototype, data not yet persistent</div>
+    
+    <script type="module">
+        import { initLoginCorner } from '/auth.js';
+        import { initRouter } from '/router.js';
+        
+        // Initialize login corner once - it persists across page navigations
+        initLoginCorner();
+        
+        // Initialize the SPA router
+        initRouter();
+    </script>
 </body>
 </html>

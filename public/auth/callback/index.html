@@ -1,25 +1,37 @@
 <!doctype html>
-<meta charset="utf-8">
-<p>Logging you in…</p>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logging in... - Tree Clipper</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div style="text-align: center; padding: 3em;">
+    <p>Logging you in…</p>
+  </div>
 
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js";
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-  const supabase = createClient(
-    "https://msgozdhtfawuadxerkxq.supabase.co",
-    "sb_publishable_wnNxDxsZA_SazdahnpMiIg__zR2QQvv",
-    {
-      auth: {
-        flowType: "pkce",
-        detectSessionInUrl: true,
-      },
-    }
-  );
+    const supabase = createClient(
+      "https://msgozdhtfawuadxerkxq.supabase.co",
+      "sb_publishable_wnNxDxsZA_SazdahnpMiIg__zR2QQvv",
+      {
+        auth: {
+          flowType: "pkce",
+          detectSessionInUrl: true,
+        },
+      }
+    );
 
-  // Finish OAuth and immediately leave this page
-  supabase.auth.getSession().then(({ data }) => {
-    if (data.session) {
-      window.location.replace("/");
-    }
-  });
-</script>
+    // Finish OAuth and immediately leave this page
+    // Use replace to avoid keeping the callback URL in history
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        window.location.replace("/");
+      }
+    });
+  </script>
+</body>
+</html>
