@@ -3,7 +3,9 @@
   "compatibility_date": "2026-01-04",
   "main": "src/index.js",
   "assets": {
-    "directory": "./public",
+    // In production, serve from the Vite build output
+    // For dev, you can temporarily switch back to "./public"
+    "directory": "./dist",
     "binding": "ASSETS"
   },
   "vars": {

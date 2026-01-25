@@ -212,6 +212,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Vite build output
+dist/
+
 # Cloudflare
 .wrangler/
 .dev.vars

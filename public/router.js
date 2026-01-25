@@ -76,10 +76,11 @@ function matchRoute(path) {
 async function loadPage(pageName) {
   if (!pageModules[pageName]) {
     try {
-      pageModules[pageName] = await import(`/pages/${pageName}.js`);
+      // Use relative path for Vite's dynamic import analysis
+      pageModules[pageName] = await import(`./pages/${pageName}.js`);
     } catch (err) {
       console.error(`Failed to load page module: ${pageName}`, err);
-      pageModules[pageName] = await import('/pages/404.js');
+      pageModules[pageName] = await import('./pages/404.js');
     }
   }
   return pageModules[pageName];
