@@ -455,11 +455,18 @@ export default {
         return Response.json(data);
       }
 
-      // List all entries
+      // List all entries with pagination
+      const limit = parseInt(url.searchParams.get("limit")) || 10;
+      const offset = parseInt(url.searchParams.get("offset")) || 0;
+      
+      // Cap limit to prevent abuse
+      const cappedLimit = Math.min(limit, 100);
+      
       const { data, error } = await supabase
         .from("entries")
         .select("*")
-        .order("creation_date", { ascending: false });
+        .order("creation_date", { ascending: false })
+        .range(offset, offset + cappedLimit - 1);
 
       if (error) {
         return new Response(error.message, { status: 500 });

@@ -125,6 +125,20 @@ a:hover {
     text-decoration: underline;
 }
 
+/* Section Header */
+.section-header {
+    margin-bottom: 1rem;
+}
+
+.section-header h2 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
 /* Assets List */
 .assets-list {
     margin: 0 0 0.5em 0;
@@ -394,6 +408,35 @@ a:hover {
 
 .upload-btn:active {
     transform: translateY(0);
+}
+
+/* Load More Button */
+.load-more-container {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.load-more-btn {
+    padding: 0.75rem 2rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #374151;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.load-more-btn:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.load-more-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* Login Prompt */
