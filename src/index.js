@@ -77,27 +77,37 @@ export default {
           
           // Build meta tags
           const title = asset.title || "Asset";
-          const description = asset.description || `By @${asset.author}`;
+          // Truncate description for OG preview (max ~200 chars for best display)
+          let ogDescription = asset.description 
+            ? asset.description.slice(0, 200) + (asset.description.length > 200 ? "..." : "")
+            : `A Blender node setup by @${asset.author}`;
           const imageUrl = asset.image_data || "";
           const pageUrl = `${url.origin}/${encodeURIComponent(username)}/${encodeURIComponent(slug)}`;
           
           // Escape HTML entities in meta content
-          const escapeAttr = (str) => str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const escapeAttr = (str) => str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, ' ');
           
-          const metaTags = `
-    <!-- Open Graph (works with Discord, Facebook, LinkedIn, etc.) -->
+          const assetMetaTags = `
+    <!-- Open Graph for asset: ${escapeAttr(title)} -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="${escapeAttr(pageUrl)}">
-    <meta property="og:title" content="${escapeAttr(title)} - Tree Clipper">
-    <meta property="og:description" content="${escapeAttr(description)}">
+    <meta property="og:title" content="${escapeAttr(title)}">
+    <meta property="og:description" content="${escapeAttr(ogDescription)}">
     ${imageUrl ? `<meta property="og:image" content="${escapeAttr(imageUrl)}">` : ""}
 `;
           
-          // Inject meta tags before </head>
-          html = html.replace("</head>", `${metaTags}</head>`);
+          // Replace the placeholder and default OG tags with asset-specific ones
+          html = html.replace(
+            /<!-- OG_PLACEHOLDER:.*?-->[\s\S]*?<meta property="og:description" content="[^"]*">/,
+            assetMetaTags.trim()
+          );
           
-          // Also update the <title> tag
+          // Also update the <title> tag and meta description
           html = html.replace(/<title>.*?<\/title>/, `<title>${escapeAttr(title)} - Tree Clipper</title>`);
+          html = html.replace(
+            /<meta name="description" content="[^"]*">/,
+            `<meta name="description" content="${escapeAttr(ogDescription)}">`
+          );
           
           return new Response(html, {
             status: 200,
